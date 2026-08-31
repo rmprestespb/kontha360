@@ -42,7 +42,7 @@ export interface ParsedFile {
 
 export function getExtension(fileName: string): string {
   const parts = fileName.toLowerCase().split(".");
-  return parts.length > 1 ? parts[parts.length - 1] : "";
+  return parts.length > 1 ? (parts[parts.length - 1] ?? "") : "";
 }
 
 export function isSupported(fileName: string): boolean {
@@ -93,6 +93,7 @@ async function parseCsv(file: File): Promise<{ rows: string[][]; text: string }>
 }
 
 async function parseDocx(file: File): Promise<{ text: string }> {
+  // @ts-expect-error - build do mammoth para navegador não possui tipos
   const mammoth = await import("mammoth/mammoth.browser.js");
   const arrayBuffer = await file.arrayBuffer();
   const result = await (mammoth as any).extractRawText({ arrayBuffer });
@@ -131,7 +132,7 @@ function legacyDocToText(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
   let out = "";
   for (let i = 0; i < bytes.length; i++) {
-    const b = bytes[i];
+    const b = bytes[i] ?? 0;
     if (b === 13 || b === 10) out += "\n";
     else if (b === 9) out += "\t";
     else if (b >= 32 && b <= 126) out += String.fromCharCode(b);
