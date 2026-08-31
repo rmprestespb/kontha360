@@ -75,7 +75,8 @@ function parseData(raw: string): Date | null {
   const s = raw.trim();
   const br = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})/);
   if (br) {
-    const ano = Number(br[3].length === 2 ? `20${br[3]}` : br[3]);
+    const anoRaw = br[3] ?? "";
+    const ano = Number(anoRaw.length === 2 ? `20${anoRaw}` : anoRaw);
     const d = new Date(ano, Number(br[2]) - 1, Number(br[1]));
     return Number.isNaN(d.getTime()) ? null : d;
   }
@@ -98,7 +99,7 @@ export function extrairTransacoes(files: StoredFile[]): Transacao[] {
 
   for (const file of files) {
     if (file.rows.length < 2) continue;
-    const header = file.rows[0].map((c) => String(c ?? ""));
+    const header = (file.rows[0] ?? []).map((c) => String(c ?? ""));
     const iData = acharColuna(header, ["data", "date", "vencimento", "emissao"]);
     const iDesc = acharColuna(header, [
       "descricao",
@@ -198,7 +199,7 @@ export function resumir(transacoes: Transacao[]): Resumo {
   const porMes = [...mapMes.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([chave, v]) => {
-      const [ano, mes] = chave.split("-");
+      const [ano = "", mes = "1"] = chave.split("-");
       return {
         mes: `${MESES[Number(mes) - 1]}/${ano.slice(2)}`,
         entradas: Math.round(v.entradas * 100) / 100,
@@ -290,7 +291,7 @@ export function transacoesDemo(): Transacao[] {
         data: new Date(ano, m, 8 + i * 3),
         descricao: cat,
         categoria: cat,
-        valor: -(s * [0.4, 0.25, 0.15, 0.1, 0.1][i]),
+        valor: -(s * ([0.4, 0.25, 0.15, 0.1, 0.1][i] ?? 0)),
         origem: "demo.csv",
       });
     });
